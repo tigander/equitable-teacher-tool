@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Equity Lens for Lesson Plans</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter font -->
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+    <!-- React and ReactDOM from CDN -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel for JSX transformation -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .list-disc-inside li::marker {
+            font-size: 1.5rem;
+            line-height: 1;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-sans transition-colors duration-300">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        // ------------------------------------------------------------------------------------------------
+        // INSTRUCTIONS:
+        // This application requires a Google Gemini API key to function.
+        // 1. Go to https://aistudio.google.com/app/apikey to get a new API key.
+        // 2. Replace the empty string below with your new API key.
+        // ------------------------------------------------------------------------------------------------
+        const { useState, useEffect } = React;
+
+        // Define the API URL for the Gemini model
+        const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent';
+        const apiKey = "AIzaSyB2D17q5aUhQlmpDKPkdUCiulgXy58Euao"; 
+
+        // Define the persona details for the UI, with a more detailed neurodivergent range.
+        const personas = [
+          { id: 'dyslexic', name: 'Dyslexic Learner' },
+          { id: 'adhd', name: 'ADHD Learner' },
+          { id: 'autistic', name: 'Autistic Learner' },
+          { id: 'esl', name: 'ESL Learner' },
+          { id: 'highAchieving', name: 'High-Achieving Student' },
+          { id: 'limitedAccess', name: 'Student with Limited Digital Access' },
+          { id: 'maori', name: 'Māori Learner' },
+          { id: 'pasifika', name: 'Pasifika Learner' },
+        ];
+
+        // Define the context options.
+        const contexts = [
+          { id: 'ece', name: 'ECE (Early Childhood)' },
+          { id: 'primary', name: 'Primary' },
+          { id: 'secondary', 'name': 'Secondary' },
+        ];
+
+        // Pre-populated lesson plan for a quick demo
+        const prePopulatedLessonPlan = `
+Lesson Title: The Science of Habitats
+
+Subject: Science
+
+Year Level: Year 9/10 (Secondary)
+
+Duration: 2 x 50 minute periods
+
+Learning Objectives:
+- Students will be able to identify key components of a local habitat.
+- Students will be able to describe the relationships between organisms in a habitat.
+- Students will be able to create a digital presentation showcasing their findings.
+
+Activity:
+Students are to work in groups of 3-4 to research a local habitat (e.g., a nearby stream, a native bush reserve, or a school garden).
+Period 1: Research in the school library or computer lab. Students must use digital resources to gather information, images, and data.
+Period 2: Groups will create a 5-minute digital presentation using Google Slides, Prezi, or a similar tool. Each group member must present a section.
+Assessment: Group presentation and a short individual quiz on habitat vocabulary.
+`;
+
+        // Metadata for the reference documents
+        const SOURCE_METADATA = {
+          'He Whakaaraara': {
+            title: 'He Whakaaraara: A Call to Action',
+            author: 'CORE Education, Education Partnership & Innovation Trust, UNICEF'
+          },
+          'Ka Hikitia Ka Hāpaitia': {
+            title: 'Ka Hikitia Ka Hāpaitia: Māori Education Strategy',
+            author: 'New Zealand Ministry of Education and other education agencies'
+          },
+          'All In': {
+            title: 'All In: Towards Tangible Solutions for Equity and Inclusion in Education',
+            author: 'UNICEF Education Programme'
+          },
+          'Ministry of Education: Promoting equitable educational outcomes': {
+            title: 'Ministry of Education: Promoting equitable educational outcomes',
+            author: 'Office of the Auditor-General'
+          },
+          'Inclusive Teaching Practice Guidance': {
+            title: 'Inclusive Teaching Practice Guidance',
+            author: 'Teaching Council of Aotearoa New Zealand'
+          }
+        };
+
+        function App() {
+          const [lessonPlan, setLessonPlan] = useState(prePopulatedLessonPlan);
+          const [selectedPersonas, setSelectedPersonas] = useState(['dyslexic', 'adhd', 'esl', 'maori']);
+          const [selectedContext, setSelectedContext] = useState('secondary');
+          const [reflections, setReflections] = useState(null);
+          const [recommendations, setRecommendations] = useState(null);
+          const [isLoading, setIsLoading] = useState(false);
+          const [error, setError] = useState(null);
+
+          // Custom function to handle file uploads
+          const handleFileUpload = (event) => {
+            const file = event.target.files[0];
+            if (file) {
+              const reader = new FileReader();
+              reader.onload = (e) => {
+                setLessonPlan(e.target.result);
+              };
+              reader.readAsText(file);
+            }
+          };
+
+          const handlePersonaToggle = (personaId) => {
+            setSelectedPersonas((prev) =>
+              prev.includes(personaId) ? prev.filter((id) => id !== personaId) : [...prev, personaId]
+            );
+          };
+
+          const handleGenerate = async () => {
+            if (!lessonPlan) {
+              setError("Please provide a lesson plan to analyze.");
+              return;
+            }
+            setError(null);
+            setIsLoading(true);
+            setReflections(null);
+            setRecommendations(null);
+            
+            if (!apiKey || apiKey === "YOUR_API_KEY_HERE") {
+                setError("Please provide a valid API key. You can get one from aistudio.google.com/app/apikey.");
+                setIsLoading(false);
+                return;
+            }
+
+            const prompt = `Analyze the following lesson plan for equity and provide student voice reflections and actionable recommendations. The lesson is for a ${selectedContext} context in New Zealand.
+            
+            Lesson Plan:
+            ${lessonPlan}
+            
+            Student Personas for Reflections: ${selectedPersonas.join(', ')}
+            
+            The reflections and recommendations must be grounded in equitable and culturally responsive teaching principles, drawing on the spirit of research from sources like 'He Whakaaraara', 'Ka Hikitia Ka Hāpaitia', 'All In', 'Ministry of Education: Promoting equitable educational outcomes', and 'Inclusive Teaching Practice Guidance'.
+            
+            For recommendations, please provide the name of the source document that the idea is most related to, using one of the following exact phrases: 'He Whakaaraara', 'Ka Hikitia Ka Hāpaitia', 'All In', 'Ministry of Education: Promoting equitable educational outcomes', or 'Inclusive Teaching Practice Guidance'.
+
+            Please provide the output in JSON format. The JSON should have two top-level keys: 'reflections' and 'recommendations'.
+            'reflections' should be an object where each key is a persona ID (e.g., 'dyslexic') and the value is a short, concise paragraph of a student voice reflection.
+            'recommendations' should be an array of objects. Each object in this array must have a 'text' field (a single recommendation as a string) and a 'sourceKey' field (the simplified title of the source document, e.g., 'He Whakaaraara'). Recommendations should be a list of bullet points.`;
+
+            const payload = {
+              contents: [{ parts: [{ text: prompt }] }],
+              generationConfig: {
+                responseMimeType: "application/json",
+                responseSchema: {
+                  type: "OBJECT",
+                  properties: {
+                    reflections: {
+                      type: "OBJECT",
+                      properties: Object.fromEntries(
+                        selectedPersonas.map(id => [id, { type: "STRING" }])
+                      ),
+                      required: selectedPersonas
+                    },
+                    recommendations: {
+                      type: "ARRAY",
+                      items: {
+                        type: "OBJECT",
+                        properties: {
+                          text: { type: "STRING" },
+                          sourceKey: { type: "STRING" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            };
+
+            try {
+              const response = await fetch(`${API_URL}?key=${apiKey}`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload),
+              });
+
+              if (!response.ok) {
+                throw new Error(`API error: ${response.status} ${response.statusText}`);
+              }
+
+              const result = await response.json();
+              const text = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+              const parsedData = JSON.parse(text);
+
+              setReflections(parsedData.reflections);
+              setRecommendations(parsedData.recommendations);
+            } catch (err) {
+              console.error("Failed to generate reflections:", err);
+              setError("Failed to generate reflections. Please check the lesson plan and try again.");
+            } finally {
+              setIsLoading(false);
+            }
+          };
+
+          return (
+            <div className="min-h-screen p-6 md:p-12">
+              <div className="max-w-4xl mx-auto space-y-8">
+                <header className="text-center mb-10">
+                  <h1 className="text-4xl md:text-5xl font-extrabold text-blue-600 dark:text-blue-400 mb-2">Equity Lens for Lesson Plans</h1>
+                  <p className="text-xl md:text-2xl font-light">
+                    Hear diverse student voices before you teach.
+                  </p>
+                </header>
+
+                <section className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 md:p-8">
+                  <h2 className="text-2xl font-semibold mb-4">Your Lesson Plan</h2>
+                  <div className="flex flex-col md:flex-row gap-4 mb-4">
+                    <label className="flex-1 w-full text-sm font-medium">
+                      Paste or type your lesson plan here
+                      <textarea
+                        className="w-full h-48 mt-1 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                        value={lessonPlan}
+                        onChange={(e) => setLessonPlan(e.target.value)}
+                        placeholder="e.g., Describe a classroom activity, unit of work, or a full lesson plan."
+                      ></textarea>
+                    </label>
+                    <div className="flex-1 flex flex-col items-center justify-center p-3 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
+                      <span className="text-gray-400 dark:text-gray-500 text-sm mb-2">Or upload a file (text-based)</span>
+                      <label className="w-full cursor-pointer bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg text-center transition-colors">
+                        Upload Lesson Plan
+                        <input
+                          type="file"
+                          className="hidden"
+                          accept=".txt,.md,.pdf" // Accepting text-based files, but processing as text
+                          onChange={handleFileUpload}
+                        />
+                      </label>
+                      <div className="text-center mt-2 text-xs text-gray-500 dark:text-gray-400">
+                        Voice input is not yet supported in this version.
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <section className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 md:p-8">
+                  <h2 className="text-2xl font-semibold mb-4">Settings</h2>
+                  <div className="grid md:grid-cols-2 gap-8">
+                    <div>
+                      <h3 className="text-lg font-medium mb-2">Select Context</h3>
+                      <div className="flex flex-wrap gap-2">
+                        {contexts.map((ctx) => (
+                          <button
+                            key={ctx.id}
+                            onClick={() => setSelectedContext(ctx.id)}
+                            className={`py-2 px-4 rounded-full font-medium transition-colors ${
+                              selectedContext === ctx.id
+                                ? 'bg-blue-600 text-white shadow-md'
+                                : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+                            }`}
+                          >
+                            {ctx.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-medium mb-2">Select Student Personas</h3>
+                      <div className="flex flex-wrap gap-2">
+                        {personas.map((persona) => (
+                          <button
+                            key={persona.id}
+                            onClick={() => handlePersonaToggle(persona.id)}
+                            className={`py-2 px-4 rounded-full font-medium transition-colors ${
+                              selectedPersonas.includes(persona.id)
+                                ? 'bg-blue-600 text-white shadow-md'
+                                : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+                            }`}
+                          >
+                            {persona.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 my-6 rounded-lg shadow-inner" role="alert">
+                  <div className="flex">
+                    <div className="py-1">
+                      <svg className="fill-current h-6 w-6 text-yellow-500 mr-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                        <path d="M2.93 17.07A10 10 0 1 1 17.07 2.93 10 10 0 0 1 2.93 17.07zm12.73-1.41A8 8 0 1 0 4.34 4.34a8 8 0 0 0 11.32 11.32zM9 11V9h2v6H9v-4zm0-6h2v2H9V5z"/>
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="font-bold">Disclaimer:</p>
+                      <p className="text-sm">This tool provides guidance and ideas. It is an aid for reflection, not a definitive judgment. The ultimate responsibility for knowing and understanding the diverse and specific needs of your learners rests with you, the teacher.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="text-center mt-8">
+                  <button
+                    onClick={handleGenerate}
+                    disabled={isLoading || !lessonPlan || selectedPersonas.length === 0}
+                    className={`py-3 px-8 rounded-full text-xl font-bold transition-all transform hover:scale-105 ${
+                      isLoading || !lessonPlan || selectedPersonas.length === 0
+                        ? 'bg-gray-400 dark:bg-gray-600 text-gray-200 cursor-not-allowed'
+                        : 'bg-green-500 text-white hover:bg-green-600 shadow-lg'
+                    }`}
+                  >
+                    {isLoading ? 'Generating...' : 'Generate Reflections'}
+                  </button>
+                </div>
+
+                {error && (
+                  <div className="bg-red-500 text-white p-4 rounded-lg mt-8 text-center">{error}</div>
+                )}
+
+                {(reflections || recommendations) && (
+                  <section className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 md:p-8 mt-8">
+                    <h2 className="text-2xl font-semibold mb-4">Equity Feedback</h2>
+                    
+                    {reflections && Object.keys(reflections).length > 0 && (
+                      <div className="mb-6">
+                        <h3 className="text-lg font-medium text-blue-500 dark:text-blue-400 mb-4">Student Voices</h3>
+                        <div className="space-y-4">
+                          {Object.keys(reflections).map((key) => (
+                            <div key={key} className="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
+                              <p className="font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                                Perspective: {personas.find(p => p.id === key)?.name || key}
+                              </p>
+                              <p className="text-gray-600 dark:text-gray-400 italic">"{reflections[key]}"</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {recommendations && recommendations.length > 0 && (
+                      <div>
+                        <h3 className="text-lg font-medium text-blue-500 dark:text-blue-400 mb-4">Recommendations</h3>
+                        <ul className="list-disc list-inside space-y-2">
+                          {recommendations.map((rec, index) => {
+                            const sourceInfo = SOURCE_METADATA[rec.sourceKey];
+                            return (
+                              <li key={index} className="text-gray-600 dark:text-gray-400">
+                                {rec.text}
+                                {sourceInfo && (
+                                  <div className="text-sm mt-1 ml-4 border-l-2 border-gray-300 pl-2 italic">
+                                    <div className="font-semibold text-gray-500 dark:text-gray-400">Source: {sourceInfo.title}</div>
+                                    <div className="text-xs text-gray-400">Author: {sourceInfo.author}</div>
+                                  </div>
+                                )}
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </div>
+                    )}
+                  </section>
+                )}
+              </div>
+            </div>
+          );
+        }
+        
+        // Render the App component
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+</html>
