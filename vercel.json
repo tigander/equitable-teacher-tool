@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "buildCommand": null,
+  "outputDirectory": ".",
+  "functions": {
+    "api/generate.js": {
+      "memory": 512,
+      "maxDuration": 30
+    }
+  }
+}
