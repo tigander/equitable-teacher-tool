@@ -413,7 +413,7 @@ Please provide the output in JSON format. The JSON should have two top-level key
 'recommendations' should be an array of objects. Each object in this array must have a 'text' field (a single recommendation as a string) and a 'sourceKey' field (the simplified title of the source document, e.g., 'He Whakaaraara').`;
 
             try {
-              const response = await fetch('/api/generate', {
+              const response = await fetch('/lesson-lens/api/generate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ prompt, selectedPersonas }),
