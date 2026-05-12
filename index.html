@@ -3,28 +3,305 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Equity Lens for Lesson Plans</title>
-    
+    <title>Equity Lens for Lesson Plans — FutureLearning</title>
     <meta property="og:title" content="Equity Lens for Lesson Plans">
     <meta property="og:description" content="An interactive tool to help teachers reflect on their lesson plans from diverse student perspectives.">
     <meta property="og:type" content="website">
-
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Inter:wght@400;500&family=Playfair+Display:ital@1&display=swap" rel="stylesheet">
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
+        :root {
+            --fl-orange: #E8601C;
+            --fl-navy: #1B2A4A;
+            --fl-charcoal: #2D2D2D;
+            --fl-light-grey: #F0F0F0;
+            --fl-teal: #2A7F7F;
+            --fl-white: #FFFFFF;
+            --fl-font-heading: 'Montserrat', Arial, sans-serif;
+            --fl-font-body: 'Inter', Arial, sans-serif;
+            --fl-font-quote: 'Playfair Display', Georgia, serif;
+            --fl-radius: 10px;
+            --fl-radius-sm: 6px;
+            --fl-radius-lg: 16px;
         }
-        .list-disc-inside li::marker {
-            font-size: 1.5rem;
-            line-height: 1;
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: var(--fl-font-body);
+            background-color: var(--fl-light-grey);
+            color: var(--fl-charcoal);
+            min-height: 100vh;
+            margin: 0;
+            padding: 2rem 1rem;
+        }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #e8e8e8; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #c0c0c0; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #a0a0a0; }
+
+        .fl-container { max-width: 900px; margin: 0 auto; }
+
+        .fl-header { text-align: center; margin-bottom: 2.5rem; }
+        .fl-logo { height: 36px; margin-bottom: 1.5rem; }
+        .fl-header h1 {
+            font-family: var(--fl-font-heading);
+            font-weight: 800;
+            font-size: 2.25rem;
+            color: var(--fl-navy);
+            margin: 0 0 0.5rem;
+            line-height: 1.2;
+        }
+        .fl-header p { font-size: 1rem; color: #666; margin: 0; }
+        .fl-rule { border: none; border-top: 2px solid var(--fl-orange); width: 48px; margin: 1rem auto; }
+
+        .fl-card {
+            background: var(--fl-white);
+            border-radius: var(--fl-radius-lg);
+            padding: 2rem 2.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid #e0e0e0;
+        }
+        .fl-card h2 {
+            font-family: var(--fl-font-heading);
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: var(--fl-navy);
+            border-bottom: 2px solid var(--fl-orange);
+            padding-bottom: 0.4rem;
+            margin: 0 0 1.5rem;
+            display: inline-block;
+        }
+        .fl-card h3 {
+            font-family: var(--fl-font-heading);
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--fl-navy);
+            margin: 0 0 0.75rem;
+        }
+
+        .fl-textarea {
+            width: 100%;
+            height: 20rem;
+            padding: 1rem;
+            background: var(--fl-light-grey);
+            border: 1.5px solid #ddd;
+            border-radius: var(--fl-radius);
+            resize: none;
+            font-family: var(--fl-font-body);
+            font-size: 0.9rem;
+            color: var(--fl-charcoal);
+            line-height: 1.5;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+        .fl-textarea:focus { border-color: var(--fl-navy); }
+
+        .fl-upload-zone {
+            border: 2px dashed #ccc;
+            border-radius: var(--fl-radius);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1.5rem;
+            text-align: center;
+            height: 20rem;
+            position: relative;
+            transition: background 0.15s;
+            cursor: pointer;
+        }
+        .fl-upload-zone:hover { background: var(--fl-light-grey); }
+        .fl-upload-zone input[type="file"] {
+            position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;
+        }
+        .fl-upload-zone p { font-size: 0.85rem; color: #888; margin: 0 0 1rem; }
+        .fl-upload-zone small { font-size: 0.75rem; color: #aaa; margin-top: 0.75rem; max-width: 240px; }
+
+        .fl-pill {
+            padding: 0.4rem 1rem;
+            border-radius: 999px;
+            font-family: var(--fl-font-body);
+            font-size: 0.85rem;
+            font-weight: 500;
+            border: 1.5px solid #ddd;
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s, border-color 0.15s;
+            background: var(--fl-light-grey);
+            color: var(--fl-charcoal);
+        }
+        .fl-pill:hover { background: #e2e2e2; }
+        .fl-pill.selected {
+            background: var(--fl-navy);
+            color: var(--fl-white);
+            border-color: var(--fl-navy);
+        }
+
+        .fl-btn-secondary {
+            background: var(--fl-navy);
+            color: var(--fl-white);
+            font-family: var(--fl-font-heading);
+            font-weight: 700;
+            font-size: 0.9rem;
+            border: none;
+            border-radius: var(--fl-radius);
+            padding: 0.7rem 1.5rem;
+            cursor: pointer;
+            pointer-events: none;
+        }
+
+        .fl-btn-primary {
+            background: var(--fl-orange);
+            color: var(--fl-white);
+            font-family: var(--fl-font-heading);
+            font-weight: 700;
+            font-size: 1.05rem;
+            border: none;
+            border-radius: 999px;
+            padding: 1rem 2.5rem;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.15s, box-shadow 0.15s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 12px rgba(232,96,28,0.25);
+        }
+        .fl-btn-primary:hover:not(:disabled) {
+            background: var(--fl-navy);
+            box-shadow: 0 6px 16px rgba(27,42,74,0.2);
+            transform: translateY(-1px);
+        }
+        .fl-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .fl-disclaimer {
+            background: var(--fl-white);
+            border-left: 4px solid var(--fl-orange);
+            border-radius: var(--fl-radius);
+            padding: 1.5rem 2rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.875rem;
+            color: var(--fl-charcoal);
+        }
+        .fl-disclaimer-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid #e8e8e8;
+        }
+        .fl-disclaimer-header h3 {
+            font-family: var(--fl-font-heading);
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: var(--fl-navy);
+            margin: 0;
+        }
+        .fl-disclaimer p { line-height: 1.6; margin: 0 0 0.6rem; }
+        .fl-disclaimer p:last-child { margin: 0; }
+
+        .fl-error {
+            background: #fef2f2;
+            color: #b91c1c;
+            border: 1px solid #fecaca;
+            border-radius: var(--fl-radius);
+            padding: 0.875rem 1.25rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            text-align: center;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .fl-results {
+            background: var(--fl-white);
+            border-radius: var(--fl-radius-lg);
+            border: 1px solid #e0e0e0;
+            padding: 2rem 2.5rem;
+            margin-top: 1.5rem;
+        }
+        .fl-results h2 {
+            font-family: var(--fl-font-heading);
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: var(--fl-navy);
+            border-bottom: 2px solid var(--fl-orange);
+            padding-bottom: 0.4rem;
+            margin: 0 0 1.5rem;
+            display: inline-block;
+        }
+        .fl-results h3 {
+            font-family: var(--fl-font-heading);
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--fl-navy);
+            margin: 1.5rem 0 0.75rem;
+        }
+        .fl-results h3:first-of-type { margin-top: 0; }
+
+        .fl-voice-card {
+            background: var(--fl-light-grey);
+            border-radius: var(--fl-radius);
+            padding: 1rem 1.25rem;
+            margin-bottom: 0.75rem;
+        }
+        .fl-voice-card-label {
+            font-family: var(--fl-font-heading);
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--fl-navy);
+            margin-bottom: 0.4rem;
+        }
+        .fl-voice-card-text {
+            font-family: var(--fl-font-quote);
+            font-style: italic;
+            color: var(--fl-charcoal);
+            line-height: 1.6;
+        }
+
+        .fl-rec-item {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #f0f0f0;
+            color: var(--fl-charcoal);
+            line-height: 1.55;
+        }
+        .fl-rec-item:last-child { border-bottom: none; }
+        .fl-rec-source {
+            margin-top: 0.35rem;
+            padding-left: 1rem;
+            border-left: 2px solid var(--fl-orange);
+            font-size: 0.8rem;
+            color: #666;
+        }
+        .fl-rec-source strong { color: var(--fl-navy); font-weight: 600; }
+
+        .fl-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .fl-spinner {
+            width: 1.1rem; height: 1.1rem;
+            border: 2px solid rgba(255,255,255,0.4);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+
+        @media (max-width: 768px) {
+            body { padding: 1.25rem 1rem; }
+            .fl-card { padding: 1.5rem; }
+            .fl-header h1 { font-size: 1.65rem; }
+            .fl-grid-2 { grid-template-columns: 1fr; }
+            .fl-upload-zone { height: auto; min-height: 10rem; }
+            .fl-textarea { height: 14rem; }
         }
     </style>
 </head>
-<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-sans transition-colors duration-300">
+<body>
     <div id="root"></div>
 
     <script type="text/babel">
@@ -47,8 +324,7 @@
           { id: 'secondary', name: 'Secondary' },
         ];
 
-        const prePopulatedLessonPlan = `
-Lesson Title: The Science of Habitats
+        const prePopulatedLessonPlan = `Lesson Title: The Science of Habitats
 
 Subject: Science
 
@@ -65,8 +341,7 @@ Activity:
 Students are to work in groups of 3-4 to research a local habitat (e.g., a nearby stream, a native bush reserve, or a school garden).
 Period 1: Research in the school library or computer lab. Students must use digital resources to gather information, images, and data.
 Period 2: Groups will create a 5-minute digital presentation using Google Slides, Prezi, or a similar tool. Each group member must present a section.
-Assessment: Group presentation and a short individual quiz on habitat vocabulary.
-`;
+Assessment: Group presentation and a short individual quiz on habitat vocabulary.`;
 
         const SOURCE_METADATA = {
           'He Whakaaraara': {
@@ -104,9 +379,7 @@ Assessment: Group presentation and a short individual quiz on habitat vocabulary
             const file = event.target.files[0];
             if (file) {
               const reader = new FileReader();
-              reader.onload = (e) => {
-                setLessonPlan(e.target.result);
-              };
+              reader.onload = (e) => setLessonPlan(e.target.result);
               reader.readAsText(file);
             }
           };
@@ -118,221 +391,190 @@ Assessment: Group presentation and a short individual quiz on habitat vocabulary
           };
 
           const handleGenerate = async () => {
-            if (!lessonPlan) {
-              setError("Please provide a lesson plan to analyze.");
-              return;
-            }
-
+            if (!lessonPlan.trim()) { setError("Please provide a lesson plan to analyse."); return; }
             setError(null);
             setIsLoading(true);
             setReflections(null);
             setRecommendations(null);
 
             const prompt = `Analyze the following lesson plan for equity and provide student voice reflections and actionable recommendations. The lesson is for a ${selectedContext} context in New Zealand.
-            
+
 Lesson Plan:
 ${lessonPlan}
-            
+
 Student Personas for Reflections: ${selectedPersonas.join(', ')}
-            
+
 The reflections and recommendations must be grounded in equitable and culturally responsive teaching principles, drawing on the spirit of research from sources like 'He Whakaaraara', 'Ka Hikitia Ka Hāpaitia', 'All In', 'Ministry of Education: Promoting equitable educational outcomes', and 'Inclusive Teaching Practice Guidance'.
-            
+
 For recommendations, please provide the name of the source document that the idea is most related to, using one of the following exact phrases: 'He Whakaaraara', 'Ka Hikitia Ka Hāpaitia', 'All In', 'Ministry of Education: Promoting equitable educational outcomes', or 'Inclusive Teaching Practice Guidance'.
 
 Please provide the output in JSON format. The JSON should have two top-level keys: 'reflections' and 'recommendations'.
 'reflections' should be an object where each key is a persona ID (e.g., 'dyslexic') and the value is a short, concise paragraph of a student voice reflection.
-'recommendations' should be an array of objects. Each object in this array must have a 'text' field (a single recommendation as a string) and a 'sourceKey' field (the simplified title of the source document, e.g., 'He Whakaaraara'). Recommendations should be a list of bullet points.`;
+'recommendations' should be an array of objects. Each object in this array must have a 'text' field (a single recommendation as a string) and a 'sourceKey' field (the simplified title of the source document, e.g., 'He Whakaaraara').`;
 
             try {
               const response = await fetch('/api/generate', {
                 method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                  prompt,
-                  selectedPersonas,
-                }),
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt, selectedPersonas }),
               });
-
               const result = await response.json();
-
-              if (!response.ok) {
-                throw new Error(result?.error || `Request failed: ${response.status}`);
-              }
-
+              if (!response.ok) throw new Error(result?.error || `Request failed: ${response.status}`);
               setReflections(result.reflections || {});
               setRecommendations(result.recommendations || []);
             } catch (err) {
-              console.error("Failed to generate reflections:", err);
               setError(err.message || "Failed to generate reflections.");
             } finally {
               setIsLoading(false);
             }
           };
 
+          const hasResults = reflections || recommendations;
+
           return (
-            <div className="min-h-screen p-6 md:p-12">
-              <div className="max-w-4xl mx-auto space-y-8">
-                <header className="text-center mb-10">
-                  <h1 className="text-4xl md:text-5xl font-extrabold text-blue-600 dark:text-blue-400 mb-2">Equity Lens for Lesson Plans</h1>
-                  <p className="text-xl md:text-2xl font-light">
-                    Hear diverse student voices before you teach.
-                  </p>
-                </header>
+            <div className="fl-container">
 
-                <section className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 md:p-8">
-                  <h2 className="text-2xl font-semibold mb-4">Your Lesson Plan</h2>
-                  <div className="flex flex-col md:flex-row gap-4 mb-4">
-                    <label className="flex-1 w-full text-sm font-medium">
-                      Paste or type your lesson plan here
-                      <textarea
-                        className="w-full h-48 mt-1 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-                        value={lessonPlan}
-                        onChange={(e) => setLessonPlan(e.target.value)}
-                        placeholder="e.g., Describe a classroom activity, unit of work, or a full lesson plan."
-                      ></textarea>
-                    </label>
-                    <div className="flex-1 flex flex-col items-center justify-center p-3 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
-                      <span className="text-gray-400 dark:text-gray-500 text-sm mb-2">Or upload a file (text-based)</span>
-                      <label className="w-full cursor-pointer bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg text-center transition-colors">
-                        Upload Lesson Plan
-                        <input
-                          type="file"
-                          className="hidden"
-                          accept=".txt,.md"
-                          onChange={handleFileUpload}
-                        />
-                      </label>
-                      <div className="text-center mt-2 text-xs text-gray-500 dark:text-gray-400">
-                        PDF uploads are not supported in this version. Voice input is not yet supported.
-                      </div>
-                    </div>
-                  </div>
-                </section>
-
-                <section className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 md:p-8">
-                  <h2 className="text-2xl font-semibold mb-4">Settings</h2>
-                  <div className="grid md:grid-cols-2 gap-8">
-                    <div>
-                      <h3 className="text-lg font-medium mb-2">Select Context</h3>
-                      <div className="flex flex-wrap gap-2">
-                        {contexts.map((ctx) => (
-                          <button
-                            key={ctx.id}
-                            onClick={() => setSelectedContext(ctx.id)}
-                            className={`py-2 px-4 rounded-full font-medium transition-colors ${
-                              selectedContext === ctx.id
-                                ? 'bg-blue-600 text-white shadow-md'
-                                : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
-                            }`}
-                          >
-                            {ctx.name}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-medium mb-2">Select Student Personas</h3>
-                      <div className="flex flex-wrap gap-2">
-                        {personas.map((persona) => (
-                          <button
-                            key={persona.id}
-                            onClick={() => handlePersonaToggle(persona.id)}
-                            className={`py-2 px-4 rounded-full font-medium transition-colors ${
-                              selectedPersonas.includes(persona.id)
-                                ? 'bg-blue-600 text-white shadow-md'
-                                : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
-                            }`}
-                          >
-                            {persona.name}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </section>
-
-                <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 my-6 rounded-lg shadow-inner" role="alert">
-                  <div className="flex">
-                    <div className="py-1">
-                      <svg className="fill-current h-6 w-6 text-yellow-500 mr-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                        <path d="M2.93 17.07A10 10 0 1 1 17.07 2.93 10 10 0 0 1 2.93 17.07zm12.73-1.41A8 8 0 1 0 4.34 4.34a8 8 0 0 0 11.32 11.32zM9 11V9h2v6H9v-4zm0-6h2v2H9V5z"/>
-                      </svg>
-                    </div>
-                    <div>
-                      <p className="font-bold">Disclaimer:</p>
-                      <p className="text-sm">This tool provides guidance and ideas. It is an aid for reflection, not a definitive judgment. The ultimate responsibility for knowing and understanding the diverse and specific needs of your learners rests with you, the teacher.</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="text-center mt-8">
-                  <button
-                    onClick={handleGenerate}
-                    disabled={isLoading || !lessonPlan || selectedPersonas.length === 0}
-                    className={`py-3 px-8 rounded-full text-xl font-bold transition-all transform hover:scale-105 ${
-                      isLoading || !lessonPlan || selectedPersonas.length === 0
-                        ? 'bg-gray-400 dark:bg-gray-600 text-gray-200 cursor-not-allowed'
-                        : 'bg-green-500 text-white hover:bg-green-600 shadow-lg'
-                    }`}
-                  >
-                    {isLoading ? 'Generating...' : 'Generate Reflections'}
-                  </button>
-                </div>
-
-                {error && (
-                  <div className="bg-red-500 text-white p-4 rounded-lg mt-8 text-center whitespace-pre-wrap">{error}</div>
-                )}
-
-                {(reflections || recommendations) && (
-                  <section className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 md:p-8 mt-8">
-                    <h2 className="text-2xl font-semibold mb-4">Equity Feedback</h2>
-                    
-                    {reflections && Object.keys(reflections).length > 0 && (
-                      <div className="mb-6">
-                        <h3 className="text-lg font-medium text-blue-500 dark:text-blue-400 mb-4">Student Voices</h3>
-                        <div className="space-y-4">
-                          {Object.keys(reflections).map((key) => (
-                            <div key={key} className="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
-                              <p className="font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                                Perspective: {personas.find(p => p.id === key)?.name || key}
-                              </p>
-                              <p className="text-gray-600 dark:text-gray-400 italic">"{reflections[key]}"</p>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {recommendations && recommendations.length > 0 && (
-                      <div>
-                        <h3 className="text-lg font-medium text-blue-500 dark:text-blue-400 mb-4">Recommendations</h3>
-                        <ul className="list-disc list-inside space-y-2">
-                          {recommendations.map((rec, index) => {
-                            const sourceInfo = SOURCE_METADATA[rec.sourceKey];
-                            return (
-                              <li key={index} className="text-gray-600 dark:text-gray-400">
-                                {rec.text}
-                                {sourceInfo && (
-                                  <div className="text-sm mt-1 ml-4 border-l-2 border-gray-300 pl-2 italic">
-                                    <div className="font-semibold text-gray-500 dark:text-gray-400">Source: {sourceInfo.title}</div>
-                                    <div className="text-xs text-gray-400">Author: {sourceInfo.author}</div>
-                                  </div>
-                                )}
-                              </li>
-                            );
-                          })}
-                        </ul>
-                      </div>
-                    )}
-                  </section>
-                )}
+              <div className="fl-header">
+                <img src="/logo.png" alt="FutureLearning" className="fl-logo" onError={(e) => { e.target.style.display = 'none'; }} />
+                <h1>Equity Lens for Lesson Plans</h1>
+                <hr className="fl-rule" />
+                <p>Hear diverse student voices before you teach.</p>
               </div>
+
+              <div className="fl-card">
+                <h2>Your Lesson Plan</h2>
+                <div className="fl-grid-2">
+                  <div>
+                    <label style={{display:'block', fontSize:'0.85rem', fontWeight:500, color:'#555', marginBottom:'0.5rem'}}>
+                      Paste or type your lesson plan here
+                    </label>
+                    <textarea
+                      className="fl-textarea"
+                      value={lessonPlan}
+                      onChange={(e) => setLessonPlan(e.target.value)}
+                      placeholder="e.g., Describe a classroom activity, unit of work, or a full lesson plan."
+                    />
+                  </div>
+                  <div>
+                    <label style={{display:'block', fontSize:'0.85rem', fontWeight:500, color:'transparent', marginBottom:'0.5rem', userSelect:'none'}}>Spacer</label>
+                    <div className="fl-upload-zone">
+                      <input type="file" accept=".txt,.md" onChange={handleFileUpload} />
+                      <p>Or upload a file (text-based)</p>
+                      <button className="fl-btn-secondary">Upload Lesson Plan</button>
+                      <small>PDF uploads are not supported in this version. Voice input is not yet supported.</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="fl-card">
+                <h2>Settings</h2>
+                <div className="fl-grid-2">
+                  <div>
+                    <h3>Select Context</h3>
+                    <div style={{display:'flex', flexWrap:'wrap', gap:'0.5rem'}}>
+                      {contexts.map((ctx) => (
+                        <button
+                          key={ctx.id}
+                          className={'fl-pill' + (selectedContext === ctx.id ? ' selected' : '')}
+                          onClick={() => setSelectedContext(ctx.id)}
+                        >
+                          {ctx.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <h3>Select Student Personas</h3>
+                    <div style={{display:'flex', flexWrap:'wrap', gap:'0.5rem'}}>
+                      {personas.map((persona) => (
+                        <button
+                          key={persona.id}
+                          className={'fl-pill' + (selectedPersonas.includes(persona.id) ? ' selected' : '')}
+                          onClick={() => handlePersonaToggle(persona.id)}
+                        >
+                          {persona.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="fl-disclaimer">
+                <div className="fl-disclaimer-header">
+                  <svg xmlns="http://www.w3.org/2000/svg" style={{width:'1.1rem',height:'1.1rem',color:'#888',flexShrink:0}} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <h3>Transparency &amp; Data Care</h3>
+                </div>
+                <div className="fl-grid-2">
+                  <div>
+                    <p><strong>System &amp; Data Privacy:</strong> Powered by Gemini 2.5 Flash. Processing is strictly ephemeral. The text you enter is processed securely in real-time and is <strong>never stored, saved, or used to train AI models</strong>.</p>
+                    <p><strong>Sources Consulted:</strong> Feedback is informed by New Zealand equity and culturally responsive teaching research, including He Whakaaraara, Ka Hikitia Ka Hāpaitia, All In, Ministry of Education, and Teaching Council resources.</p>
+                  </div>
+                  <div>
+                    <p><strong>Advisory Use Only:</strong> This tool provides guidance and ideas — an aid for reflection, not a definitive judgement. <strong>Human oversight and educator judgement are strictly required.</strong></p>
+                    <p><strong>Escalation:</strong> The ultimate responsibility for knowing and understanding the diverse and specific needs of your learners rests with you, the teacher.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{display:'flex', flexDirection:'column', alignItems:'center', gap:'1rem', marginBottom:'1.5rem'}}>
+                <button
+                  className="fl-btn-primary"
+                  onClick={handleGenerate}
+                  disabled={isLoading || !lessonPlan.trim() || selectedPersonas.length === 0}
+                >
+                  {isLoading ? (<>Generating... <span className="fl-spinner" /></>) : 'Generate Reflections'}
+                </button>
+                {error && <div className="fl-error">{error}</div>}
+              </div>
+
+              {hasResults && (
+                <div className="fl-results">
+                  <h2>Equity Feedback</h2>
+
+                  {reflections && Object.keys(reflections).length > 0 && (
+                    <>
+                      <h3>Student Voices</h3>
+                      {Object.keys(reflections).map((key) => (
+                        <div key={key} className="fl-voice-card">
+                          <div className="fl-voice-card-label">
+                            {personas.find(p => p.id === key)?.name || key}
+                          </div>
+                          <div className="fl-voice-card-text">"{reflections[key]}"</div>
+                        </div>
+                      ))}
+                    </>
+                  )}
+
+                  {recommendations && recommendations.length > 0 && (
+                    <>
+                      <h3>Recommendations</h3>
+                      {recommendations.map((rec, index) => {
+                        const sourceInfo = SOURCE_METADATA[rec.sourceKey];
+                        return (
+                          <div key={index} className="fl-rec-item">
+                            {rec.text}
+                            {sourceInfo && (
+                              <div className="fl-rec-source">
+                                <strong>{sourceInfo.title}</strong>
+                                <div style={{fontSize:'0.75rem', color:'#999', marginTop:'0.2rem'}}>{sourceInfo.author}</div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </>
+                  )}
+                </div>
+              )}
+
             </div>
           );
         }
-        
+
         ReactDOM.createRoot(document.getElementById('root')).render(<App />);
     </script>
 </body>
