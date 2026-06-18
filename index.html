@@ -10,9 +10,11 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Inter:wght@400;500&family=Playfair+Display:ital@1&display=swap" rel="stylesheet">
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+    <!-- Pinned to Babel 7: Babel 8's React preset defaults to the automatic JSX runtime, which injects an
+         `import { jsx } from "react/jsx-runtime"` that is illegal in a plain (non-module) inline script. -->
+    <script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
     <style>
         :root {
             --fl-orange: #E8601C;
